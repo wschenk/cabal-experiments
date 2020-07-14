@@ -12,9 +12,11 @@ date: "2019-04-23"
 
 Cabal is a "experimental p2p community chat platform".  It's fully distributed over the [dat protocol](https://www.datprotocol.com/).  When you create a new chat area -- something like a Slack -- it allows anyone with the same key to post and view messages everywhere.  When you post a message, everyone gets it and shares it with everyone else, so even when your computer drops off there will still be a coherent view of the data.
 
+/Updated 2020-07-14 for cabal-core 5.0/
+
 ## Local computer
 
-You'll need at last two computers to really play with this.  But we can simulate the situation by running a docker container as well as a local instance of the cabal cli client.  We can then move that container (or at least the image) around to run it on a remote server if you don't want to mess with anything on the remote machine.  Lets first install it locally:
+You'll need at least two computers to really play with this.  But we can simulate the situation by running a docker container as well as a local instance of the cabal cli client.  We can then move that container (or at least the image) around to run it on a remote server if you don't want to mess with anything on the remote machine.  Lets first install it locally:
 
 ## On the terminal
 
@@ -35,17 +37,21 @@ I like keeping things in Docker containers when playing around so that no unnece
 This is a very basic node-based Dockerfile.  Cabal/Dat uses port `3282` to communicate, so we'll need to expose and open that.
 
 [`Dockerfile`](Dockerfile)
-{{% code file="articles/2019/playing_with_cabal/Dockerfile" language="Dockerfile" %}}
+{{< highlight "Dockerfile" >}}
+{{% raw "Dockerfile" %}}
+{{< /highlight >}}
 
 Then build like so:
 
-```
+```bash
 docker build . -t $USER/cabal
 ```
 
 Create a simple script to make it easier to run in the future.  (Note I'm using `--network host` here because I was having trouble getting dat to punch through the Docker networking/NAT stuff.)
 
-{{% code file="articles/2019/playing_with_cabal/run.sh" language="bash" %}}
+{{< highlight "bash" >}}
+{{% raw "run.sh" %}}
+{{< /highlight >}}
 
 This script is for running one off commands, and it throws away the container each time so you'll lose the history.  If you really wanted to use this for something more than an experiment you should mount the internal `/root/.cabal` directory to a docker volume and/or not make it a temporary container.
 
@@ -63,14 +69,14 @@ That's super cool already, but lets go a little deep and start writing our own h
 
 ```bash
 npm init
-yarn add cabal-core tmp delay
+npm i add cabal-core tmp delay
 ```
 
 ## Printing out everything that is in a swarm
 
 1. First we create a `Cabal` instance with a storage directory and our key, using `cabel = Cabal(directoy,key)`
 2. Then we connect it to the swarm to start replicating using `swarm(cabal)`
-3. Once the local database has been loaded and processed, the `cabal.db.ready()` callback is called.  Events received after this are new.
+3. Once the local database has been loaded and processed, the `cabal.ready()` callback is called.  Events received after this are new.
 4. We can watch peers join and disconnect using `cabal.on('peer-added')` and `cabal.on('peer-dropped')`
 5. We can listen for new messages and topics using `cabal.messages.events.on('message')`
 6. (We can also listen for messages just in a specific channel, not shown below)
@@ -80,7 +86,9 @@ yarn add cabal-core tmp delay
 
 Here's it in code form [`dump.js`](read.js):
 
-{{% code file="articles/2019/playing_with_cabal/dump.js" language="js" %}}
+{{< highlight "js" >}}
+{{% raw "dump.js" %}}
+{{< /highlight >}}
 
 Now lets restart everything and see what happens!  When I start up `node dump.js key` on my machine, and then start up the `cabal-cli` client on the other machine and:
 
@@ -92,7 +100,9 @@ Now lets restart everything and see what happens!  When I start up `node dump.js
 6. Type `/topic Serious Stuff`
 7. Type `/quit`
 
-{{% code file="articles/2019/playing_with_cabal/dump.out" language="bash" %}}
+{{< highlight "bash" >}}
+{{% raw "dump.out" %}}
+{{< /highlight >}}
 
 ## Publishing a message
 
@@ -107,7 +117,9 @@ Of course, if you just want to publish a message and serve the swarm forever, we
 
 [`publish.js`](publish.js):
 
-{{% code file="articles/2019/playing_with_cabal/publish.js" language="js" %}}
+{{< highlight "js" >}}
+{{% raw "publish.js" %}}
+{{< /highlight >}}
 
 Then try running this code with a running cabal node on the remote host and without one.  You'll notice that the messages that were stored locally will eventually be delivered once a connection is made.
 
